@@ -143,27 +143,24 @@ int main(int argc, char* argv[])
         else if (*argv[currentArgv] == 'm')
         {
             currentArgv++;
-            char* mirrorAxis = argv[currentArgv++];
+            char* mirrorAxis = argv[currentArgv];
             float mirrorX = 1.0f, mirrorY = 1.0f, mirrorZ = 1.0f;
-            for (size_t i = 0; i < strlen(mirrorAxis); i++)
+            if (mirrorAxis[0] == 'x')
             {
-                if (mirrorAxis[i] == 'x')
-                {
-                    mirrorX = -1.0f;
-                }
-                else if (mirrorAxis[i] == 'y')
-                {
-                    mirrorY = -1.0f;
-                }
-                else if (mirrorAxis[i] == 'z')
-                {
-                    mirrorZ = -1.0f;
-                }
-                else
-                {
-                    std::cout << "Wrong usage" << std::endl;
-                    return 0;
-                }
+                mirrorX = -1.0f;
+            }
+            else if (mirrorAxis[0] == 'y')
+            {
+                mirrorY = -1.0f;
+            }
+            else if (mirrorAxis[0] == 'z')
+            {
+                mirrorZ = -1.0f;
+            }
+            else
+            {
+                std::cout << "Wrong usage" << std::endl;
+                return 0;
             }
             userTransform = glm::scale(userTransform, glm::vec3(mirrorX, mirrorY, mirrorZ));
         }
@@ -455,21 +452,18 @@ while (!glfwWindowShouldClose(window))
         ourShader.setMat4("model", model);
         glDrawArrays(GL_LINES, 0, 114);
 
+        ourShader.setVec3("ourColor", glm::vec3(0.0f, 0.7f, 0.7f));
+        ourShader.setMat4("transform", userTransform);
         if (*argv[1] == 'c')
         {
             glBindVertexArray(VAOcube);
-            ourShader.setVec3("ourColor", glm::vec3(0.0f, 0.7f, 0.7f));
-            ourShader.setMat4("transform", userTransform);
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glDrawArrays(GL_TRIANGLES, 0, 36);
 
         }
         else {
             glBindVertexArray(VAOui);
-            ourShader.setVec3("ourColor", glm::vec3(0.0f, 0.7f, 0.7f));
-            ourShader.setMat4("transform", userTransform);
             glDrawArrays(drawType, 0, drawNumberOfVertices);
-            // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
 
         glfwSwapBuffers(window);
