@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <cmath>
 
 #include <shader.hpp>
 #include <camera.hpp>
@@ -39,7 +40,9 @@ float lastY = SCREEN_HEIGHT / 2.0f;
 int main(int argc, char* argv[])
 {
     std::cout << "argc = " << argc << std::endl;
-    float x1 = 0.0f, y1 = 0.0f, x2 = 0.0f, y2 = 0.0f, x3 = 0.0f, y3 = 0.0f;
+    float x1 = 0.0f, y1 = 0.0f, z1 = 0.0f;
+    float x2 = 0.0f, y2 = 0.0f, z2 = 0.0f;
+    float x3 = 0.0f, y3 = 0.0f, z3 = 0.0f;
     int drawType = 0;
     int drawNumberOfVertices = 0;
     int currentArgv = 2;
@@ -59,6 +62,7 @@ int main(int argc, char* argv[])
         std::cout << "Show point" << std::endl;
         x1 = std::stof(std::string(argv[currentArgv++]));
         y1 = std::stof(std::string(argv[currentArgv++]));
+        z1 = std::stof(std::string(argv[currentArgv]));
         drawType = GL_POINTS;
         drawNumberOfVertices = 1;
     }
@@ -174,10 +178,27 @@ int main(int argc, char* argv[])
         currentArgv++;
     }
 
+    float d = 0.2f;
+    x2 = x1 / (z1 / d);
+    // x2 = -x1;
+    std::cout << "x2 = " << x2 << std::endl;
+    y2 = y1 / (z1 / d);
+    // y2 = -y1;
+    std::cout << "y2 = " << y2 << std::endl;
+    z2 = d;
+    std::cout << "z2 = " << z2 << std::endl;
+
+
+    float alpha = 45.0f;
+    float l = 1.0f;
+    x3 = x1 + z1 * l * cos(alpha);
+    y3 = x1 + z1 * l * sin(alpha);
+    std::cout << "x3 = " << x3 << std::endl;
+    std::cout << "y3 = " << y3 << std::endl;
     float userInputPoints2d[] = {
-         x1, y1, 0.0f,
-         x2, y2, 0.0f,
-         x3, y3, 0.0f
+         x1, y1, z1,
+         x2, y2, z2,
+         x3, y3, z3
     };
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -194,7 +215,7 @@ int main(int argc, char* argv[])
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
@@ -410,10 +431,9 @@ int main(int argc, char* argv[])
     glEnableVertexAttribArray(0);
 
     ourShader.use();
-    ourShader.setVec3("ourColor", glm::vec3(0.0f, 0.0f, 0.0f));
-    glPointSize(5.0f);
+    glPointSize(20.0f);
 
-while (!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(window))
     {
         // ----------------------
         // Calculate time per frame
@@ -432,14 +452,14 @@ while (!glfwWindowShouldClose(window))
         ourShader.use();
         ourShader.setVec3("ourColor", glm::vec3(0.0f, 0.0f, 0.0f));
         // glm::mat4 view          = glm::mat4(1.0f);
-        // glm::mat4 view          = camera.getViewMatrix();
-        glm::mat4 view          = glm::lookAt(
-            glm::vec3(1, 1, 1),
-            glm::vec3(0, 0, 0),
-            glm::vec3(0, 1, 0));
-        // glm::mat4 projection    = glm::perspective(glm::radians(camera.Zoom), (float) SCREEN_WIDTH / (float) SCREEN_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view          = camera.getViewMatrix();
+        // glm::mat4 view          = glm::lookAt(
+        //     glm::vec3(1, 1, 1),
+        //     glm::vec3(0, 0, 0),
+        //     glm::vec3(0, 1, 0));
+        glm::mat4 projection    = glm::perspective(glm::radians(camera.Zoom), (float) SCREEN_WIDTH / (float) SCREEN_HEIGHT, 0.1f, 100.0f);
         // glm::mat4 projection    = glm::ortho(-1.0, SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / -2.f, SCREEN_HEIGHT / 2.f, 0.5f, -0.5f);
-        glm::mat4 projection    = glm::ortho(-1.1f, 1.1f, -1.1f, 1.1f, -1.1f, 100.0f);
+        // glm::mat4 projection    = glm::ortho(-1.1f, 1.1f, -1.1f, 1.1f, -1.1f, 100.0f);
         glm::mat4 transform     = glm::mat4(1.0f);
         // view       = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
         view       = glm::scale(view, glm::vec3(scaleOX, scaleOY, scaleOZ));
@@ -450,10 +470,15 @@ while (!glfwWindowShouldClose(window))
         glBindVertexArray(VAO);
         glm::mat4 model = glm::mat4(1.0f);
         ourShader.setMat4("model", model);
-        glDrawArrays(GL_LINES, 0, 114);
-
+        // glDrawArrays(GL_LINES, 0, 114);
+        ourShader.setVec3("ourColor", glm::vec3(0.0f, 1.0f, 0.0f));
+        glDrawArrays(GL_LINES, 0, 38);
+        ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.0f, 0.0f));
+        glDrawArrays(GL_LINES, 38, 38);
+        ourShader.setVec3("ourColor", glm::vec3(0.0f, 0.0f, 1.0f));
+        glDrawArrays(GL_LINES, 76, 38);
         ourShader.setVec3("ourColor", glm::vec3(0.0f, 0.7f, 0.7f));
-        ourShader.setMat4("transform", userTransform);
+        // ourShader.setMat4("transform", userTransform);
         if (*argv[1] == 'c')
         {
             glBindVertexArray(VAOcube);
@@ -462,8 +487,20 @@ while (!glfwWindowShouldClose(window))
 
         }
         else {
+            glPointSize(20.0f);
+            ourShader.setMat4("transform", userTransform);
             glBindVertexArray(VAOui);
-            glDrawArrays(drawType, 0, drawNumberOfVertices);
+            glDrawArrays(drawType, 0, 1);
+
+            glPointSize(15.0f);
+            ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.7f, 0.7f));
+            glBindVertexArray(VAOui);
+            glDrawArrays(drawType, 1, 1);
+
+            glPointSize(15.0f);
+            ourShader.setVec3("ourColor", glm::vec3(0.5f, 0.7f, 0.3f));
+            glBindVertexArray(VAOui);
+            glDrawArrays(drawType, 2, 1);
         }
 
         glfwSwapBuffers(window);
