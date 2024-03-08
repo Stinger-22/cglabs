@@ -17,6 +17,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+float roundToCell(float number);
 
 // ----------------------
 // SETTINGS
@@ -62,7 +63,6 @@ int main(int argc, char* argv[])
         std::cout << "Show point" << std::endl;
         x1 = std::stof(std::string(argv[currentArgv++]));
         y1 = std::stof(std::string(argv[currentArgv++]));
-        z1 = std::stof(std::string(argv[currentArgv]));
         drawType = GL_POINTS;
         drawNumberOfVertices = 1;
     }
@@ -88,10 +88,6 @@ int main(int argc, char* argv[])
         drawType = GL_TRIANGLES;
         drawNumberOfVertices = 3;
     }
-    else if (*argv[1] == 'c')
-    {
-        std::cout << "Show cube" << std::endl;
-    }
     else
     {
         std::cout << "Wrong usage" << std::endl;
@@ -104,16 +100,14 @@ int main(int argc, char* argv[])
         {
             currentArgv++;
             translateX = std::stof(std::string(argv[currentArgv++]));
-            translateY = std::stof(std::string(argv[currentArgv++]));
-            translateZ = std::stof(std::string(argv[currentArgv]));
+            translateY = std::stof(std::string(argv[currentArgv]));
             userTransform = glm::translate(userTransform, glm::vec3(translateX, translateY, translateZ));
         }
         else if (*argv[currentArgv] == 's')
         {
             currentArgv++;
             scaleX = std::stof(std::string(argv[currentArgv++]));
-            scaleY = std::stof(std::string(argv[currentArgv++]));
-            scaleZ = std::stof(std::string(argv[currentArgv]));
+            scaleY = std::stof(std::string(argv[currentArgv]));
             userTransform = glm::scale(userTransform, glm::vec3(scaleX, scaleY, scaleZ));
         }
         else if (*argv[currentArgv] == 'r')
@@ -130,10 +124,6 @@ int main(int argc, char* argv[])
                 else if (rotateAxis[i] == 'y')
                 {
                     rotateY = 1;
-                }
-                else if (rotateAxis[i] == 'z')
-                {
-                    rotateZ = 1;
                 }
                 else
                 {
@@ -157,10 +147,6 @@ int main(int argc, char* argv[])
             {
                 mirrorY = -1.0f;
             }
-            else if (mirrorAxis[0] == 'z')
-            {
-                mirrorZ = -1.0f;
-            }
             else
             {
                 std::cout << "Wrong usage" << std::endl;
@@ -172,33 +158,15 @@ int main(int argc, char* argv[])
         {
             currentArgv++;
             scaleOX = std::stof(std::string(argv[currentArgv++]));
-            scaleOY = std::stof(std::string(argv[currentArgv++]));
-            scaleOZ = std::stof(std::string(argv[currentArgv]));
+            scaleOY = std::stof(std::string(argv[currentArgv]));
         }
         currentArgv++;
     }
 
-    float d = 0.2f;
-    x2 = x1 / (z1 / d);
-    // x2 = -x1;
-    std::cout << "x2 = " << x2 << std::endl;
-    y2 = y1 / (z1 / d);
-    // y2 = -y1;
-    std::cout << "y2 = " << y2 << std::endl;
-    z2 = d;
-    std::cout << "z2 = " << z2 << std::endl;
-
-
-    float alpha = 45.0f;
-    float l = 1.0f;
-    x3 = x1 + z1 * l * cos(alpha);
-    y3 = x1 + z1 * l * sin(alpha);
-    std::cout << "x3 = " << x3 << std::endl;
-    std::cout << "y3 = " << y3 << std::endl;
     float userInputPoints2d[] = {
-         x1, y1, z1,
-         x2, y2, z2,
-         x3, y3, z3
+         x1, y1, 0.0f,
+         x2, y2, 0.0f,
+         x3, y3, 0.0f
     };
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -308,104 +276,33 @@ int main(int argc, char* argv[])
         -0.025f,   0.2f,  0.0f,
          0.025f,   0.1f,  0.0f,
         -0.025f,   0.1f,  0.0f,
-        // Axis Z
-         0.0f,  0.0f, -1.0f,
-         0.0f,  0.0f,  1.0f,
-         // Axis Z points
-         0.025f,  0.0f,  -0.9f,
-        -0.025f,  0.0f,  -0.9f,
-         0.025f,  0.0f,  -0.8f,
-        -0.025f,  0.0f,  -0.8f,
-         0.025f,  0.0f,  -0.7f,
-        -0.025f,  0.0f,  -0.7f,
-         0.025f,  0.0f,  -0.6f,
-        -0.025f,  0.0f,  -0.6f,
-         0.025f,  0.0f,  -0.5f,
-        -0.025f,  0.0f,  -0.5f,
-         0.025f,  0.0f,  -0.4f,
-        -0.025f,  0.0f,  -0.4f,
-         0.025f,  0.0f,  -0.3f,
-        -0.025f,  0.0f,  -0.3f,
-         0.025f,  0.0f,  -0.2f,
-        -0.025f,  0.0f,  -0.2f,
-         0.025f,  0.0f,  -0.1f,
-        -0.025f,  0.0f,  -0.1f,
-         0.025f,   0.0f,  0.9f,
-        -0.025f,   0.0f,  0.9f,
-         0.025f,   0.0f,  0.8f,
-        -0.025f,   0.0f,  0.8f,
-         0.025f,   0.0f,  0.7f,
-        -0.025f,   0.0f,  0.7f,
-         0.025f,   0.0f,  0.6f,
-        -0.025f,   0.0f,  0.6f,
-         0.025f,   0.0f,  0.5f,
-        -0.025f,   0.0f,  0.5f,
-         0.025f,   0.0f,  0.4f,
-        -0.025f,   0.0f,  0.4f,
-         0.025f,   0.0f,  0.3f,
-        -0.025f,   0.0f,  0.3f,
-         0.025f,   0.0f,  0.2f,
-        -0.025f,   0.0f,  0.2f,
-         0.025f,   0.0f,  0.1f,
-        -0.025f,   0.0f,  0.1f,
     };
 
-    float cubeVertices[] = {
-        -0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-        -0.5f,  0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-
-        -0.5f, -0.5f,  0.5f,
-         0.5f, -0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-        -0.5f, -0.5f,  0.5f,
-
-        -0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-
-         0.5f,  0.5f,  0.5f,
-         0.5f,  0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-
-        -0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f,  0.5f,
-         0.5f, -0.5f,  0.5f,
-        -0.5f, -0.5f,  0.5f,
-        -0.5f, -0.5f, -0.5f,
-
-        -0.5f,  0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-         0.5f,  0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f, -0.5f,
+    float squareVertices[] = {
+        0.0f, 0.0f, 0.0f,
+        0.0f, 0.1f, 0.0f,
+        0.1f, 0.1f, 0.0f,
+        0.1f, 0.0f, 0.0f
+    };
+    unsigned int squareIndices[] = {
+        0, 1, 3,
+        1, 2, 3
     };
 
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+    // Plot Object
+    unsigned int axisVBO, axisVAO;
+    glGenVertexArrays(1, &axisVAO);
+    glGenBuffers(1, &axisVBO);
 
-    glBindVertexArray(VAO);
+    glBindVertexArray(axisVAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(points2d), points2d, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    // User input object
     unsigned int VBOui, VAOui;
     glGenVertexArrays(1, &VAOui);
     glGenBuffers(1, &VBOui);
@@ -418,20 +315,22 @@ int main(int argc, char* argv[])
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    unsigned int VBOcube, VAOcube;
-    glGenVertexArrays(1, &VAOcube);
-    glGenBuffers(1, &VBOcube);
+    // Square object
+    unsigned int squareVBO, squareVAO, squareEBO;
+    glGenVertexArrays(1, &squareVAO);
+    glGenBuffers(1, &squareVBO);
+    glGenBuffers(1, &squareEBO);
 
-    glBindVertexArray(VAOcube);
+    glBindVertexArray(squareVAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBOcube);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, squareVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(squareVertices), squareVertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, squareEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(squareIndices), squareIndices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    ourShader.use();
-    glPointSize(20.0f);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -448,68 +347,89 @@ int main(int argc, char* argv[])
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // activate shader
         ourShader.use();
         ourShader.setVec3("ourColor", glm::vec3(0.0f, 0.0f, 0.0f));
-        // glm::mat4 view          = glm::mat4(1.0f);
         glm::mat4 view          = camera.getViewMatrix();
-        // glm::mat4 view          = glm::lookAt(
-        //     glm::vec3(1, 1, 1),
-        //     glm::vec3(0, 0, 0),
-        //     glm::vec3(0, 1, 0));
         glm::mat4 projection    = glm::perspective(glm::radians(camera.Zoom), (float) SCREEN_WIDTH / (float) SCREEN_HEIGHT, 0.1f, 100.0f);
-        // glm::mat4 projection    = glm::ortho(-1.0, SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / -2.f, SCREEN_HEIGHT / 2.f, 0.5f, -0.5f);
-        // glm::mat4 projection    = glm::ortho(-1.1f, 1.1f, -1.1f, 1.1f, -1.1f, 100.0f);
         glm::mat4 transform     = glm::mat4(1.0f);
-        // view       = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
         view       = glm::scale(view, glm::vec3(scaleOX, scaleOY, scaleOZ));
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
         ourShader.setMat4("transform", transform);
 
-        glBindVertexArray(VAO);
+
         glm::mat4 model = glm::mat4(1.0f);
         ourShader.setMat4("model", model);
-        // glDrawArrays(GL_LINES, 0, 114);
+        // ----------------------
+        // Draw net
+        glBindVertexArray(axisVAO);
+        for (float y = -1.0f; y <= 1.1f; y += 0.1f)
+        {
+            ourShader.setMat4("transform", glm::translate(transform, glm::vec3(0.0f, y, 0.0f)));
+            glDrawArrays(GL_LINES, 0, 2);
+        }
+        for (float x = -1.0f; x <= 1.1f; x += 0.1f)
+        {
+            ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, 0.0f, 0.0f)));
+            glDrawArrays(GL_LINES, 38, 2);
+        }
+        // ----------------------
+        // Draw axis
+        glBindVertexArray(axisVAO);
+        model = glm::mat4(1.0f);
+        ourShader.setMat4("model", model);
+        transform = glm::mat4(1.0f);
+        ourShader.setMat4("transform", transform);
         ourShader.setVec3("ourColor", glm::vec3(0.0f, 1.0f, 0.0f));
         glDrawArrays(GL_LINES, 0, 38);
         ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.0f, 0.0f));
         glDrawArrays(GL_LINES, 38, 38);
         ourShader.setVec3("ourColor", glm::vec3(0.0f, 0.0f, 1.0f));
-        glDrawArrays(GL_LINES, 76, 38);
-        ourShader.setVec3("ourColor", glm::vec3(0.0f, 0.7f, 0.7f));
-        // ourShader.setMat4("transform", userTransform);
-        if (*argv[1] == 'c')
+
+        // ----------------------
+        // Draw figures
+        glBindVertexArray(VAOui);
+        if (*argv[1] == 'l')
         {
-            glBindVertexArray(VAOcube);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-
+            if (x2 < x1)
+            {
+                float t = x1;
+                x1 = x2;
+                x2 = t;
+            }
+            float dx = x2 - x1;
+            float dy = y2 - y1;
+            for (float x = x1; x <= x2; x += 0.0001)
+            {
+                float y = y1 + dy * (x - x1) / dx;
+                // glPointSize(5.0f);
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
+                glDrawArrays(GL_POINTS, 2, 1);
+            }
+            // float startX = roundToCell(x1), startY = roundToCell(y1);
+            // float endX = roundToCell(x2), endY = roundToCell(y2);
+            // std::cout << "startX = " << startX << std::endl;
+            // std::cout << "startY = " << startY << std::endl;
+            // // Draw in squares
+            // ourShader.setVec3("ourColor", glm::vec3(0.51f, 0.5412f, 0.4274f));
+            // glBindVertexArray(squareVAO);
+            // ourShader.setMat4("transform", glm::translate(transform, glm::vec3(startX, startY, 0.0f)));
+            // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+            // ourShader.setMat4("transform", glm::translate(transform, glm::vec3(endX, endY, 0.0f)));
+            // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         }
-        else {
-            glPointSize(20.0f);
-            ourShader.setMat4("transform", userTransform);
-            glBindVertexArray(VAOui);
-            glDrawArrays(drawType, 0, 1);
-
-            glPointSize(15.0f);
-            ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.7f, 0.7f));
-            glBindVertexArray(VAOui);
-            glDrawArrays(drawType, 1, 1);
-
-            glPointSize(15.0f);
-            ourShader.setVec3("ourColor", glm::vec3(0.5f, 0.7f, 0.3f));
-            glBindVertexArray(VAOui);
-            glDrawArrays(drawType, 2, 1);
-        }
+        glBindVertexArray(VAOui);
+        ourShader.setVec3("ourColor", glm::vec3(0.5529f, 0.1647f, 0.7804f));
+        ourShader.setMat4("transform", userTransform);
+        // glDrawArrays(drawType, 0, drawNumberOfVertices);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &axisVAO);
+    glDeleteBuffers(1, &axisVBO);
 
     glfwTerminate();
     return 0;
@@ -570,4 +490,10 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
+}
+
+float roundToCell(float number)
+{
+    float rounded = ((int) (number * 10.0f)) / 10.0f;
+    return rounded;
 }
