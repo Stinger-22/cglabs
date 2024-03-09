@@ -385,38 +385,90 @@ int main(int argc, char* argv[])
         ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.0f, 0.0f));
         glDrawArrays(GL_LINES, 38, 38);
 
+        glPointSize(6.0f);
         // ----------------------
         // Draw figures
         if (*argv[1] == 'l')
         {
-            float step;
-            float dx = x2 - x1;
-            float dy = y2 - y1;
-            if (fabs(dx) >= fabs(dy))
+            // ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.9215, 0.2196));
+            ourShader.setVec3("ourColor", glm::vec3(0.5529f, 0.1647f, 0.7804f));
+            // glBindVertexArray(squareVAO);
+            glBindVertexArray(VAOui);
+
+            int dx, dy, i, e;
+            int incX, incY, inc1, inc2;
+            int x, y;
+
+            dx = x2 - x1;
+            dy = y2 - y1;
+
+            if (dx < 0)
             {
-                step = fabs(dx);
+                dx = -dx;
+            }
+            if (dy < 0)
+            {
+                dy = -dy;
+            }
+
+            incX = 1;
+            if (x2 < x1)
+            {
+                incX = -1;
+            }
+
+            incY = 1;
+            if (y2 < y1)
+            {
+                incY = -1;
+            }
+            x = x1; y = y1;
+            if (dx > dy)
+            {
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
+                glDrawArrays(GL_POINTS, 2, 1);
+                e = 2 * dy - dx;
+                inc1 = 2 * (dy - dx);
+                inc2 = 2 * dy;
+                for (i = 0; i < dx; i++)
+                {
+                    if (e >= 0)
+                    {
+                        y += incY;
+                        e += inc1;
+                    }
+                    else
+                    {
+                        e += inc2;
+                    }
+                    x += incX;
+                    ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
+                    glDrawArrays(GL_POINTS, 2, 1);
+                }
+
             }
             else
             {
-                step = fabs(dy);
-            }
-            dx = dx / step;
-            dy = dy / step;
-            float x = x1, y = y1;
-            ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.9215, 0.2196));
-            glBindVertexArray(squareVAO);
-            for (int i = 0; i < step; i++)
-            {
-                float tX = x;
-                float tY = y;
-                if (dy < 0)
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
+                glDrawArrays(GL_POINTS, 2, 1);
+                e = 2 * dx - dy;
+                inc1 = 2 * (dx - dy);
+                inc2 = 2 * dx;
+                for (i = 0; i < dy; i++)
                 {
-                    tY -= 1.0f;
+                    if (e >= 0)
+                    {
+                        x += incX;
+                        e += inc1;
+                    }
+                    else
+                    {
+                        e += inc2;
+                    }
+                    y += incY;
+                    ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
+                    glDrawArrays(GL_POINTS, 2, 1);
                 }
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(round(tX - 0.4f), round(tY), 0.0f)));
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-                x += dx;
-                y += dy;
             }
         }
         else
