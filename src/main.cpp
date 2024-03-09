@@ -168,6 +168,21 @@ int main(int argc, char* argv[])
          x2, y2, 0.0f,
          x3, y3, 0.0f
     };
+
+    // if (x2 < x1)
+    // {
+    //     float t = x1;
+    //     x1 = x2;
+    //     x2 = t;
+    // }
+    // float dx = x2 - x1;
+    // float dy = y2 - y1;
+    // for (float x = x1; x <= x2; x += 0.1)
+    // {
+    //     float y = y1 + dy * (x - x1) / dx;
+    //     std::cout << "(" << x << "; " << roundToCell(y) << ")" << std::endl;
+    // }
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -384,11 +399,9 @@ int main(int argc, char* argv[])
         glDrawArrays(GL_LINES, 0, 38);
         ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.0f, 0.0f));
         glDrawArrays(GL_LINES, 38, 38);
-        ourShader.setVec3("ourColor", glm::vec3(0.0f, 0.0f, 1.0f));
 
         // ----------------------
         // Draw figures
-        glBindVertexArray(VAOui);
         if (*argv[1] == 'l')
         {
             if (x2 < x1)
@@ -399,24 +412,31 @@ int main(int argc, char* argv[])
             }
             float dx = x2 - x1;
             float dy = y2 - y1;
-            for (float x = x1; x <= x2; x += 0.0001)
+            float fixSlopeNegative = 0.0;
+            if (dy < 0.0f)
+            {
+                fixSlopeNegative = -0.1f;
+            }
+            // Draw in squares
+            glBindVertexArray(squareVAO);
+            ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.9215, 0.2196));
+            for (float x = x1; x < x2; x += 0.1)
             {
                 float y = y1 + dy * (x - x1) / dx;
-                // glPointSize(5.0f);
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
+                y = roundToCell(y);
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y + fixSlopeNegative, 0.0f)));
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                // std::cout << "(" << x << "; " << roundToCell(y) << ")" << std::endl;
+            }
+
+            ourShader.setVec3("ourColor", glm::vec3(0.0f, 0.0f, 1.0f));
+            glBindVertexArray(VAOui);
+            for (float x = x1; x < x2; x += 0.0001)
+            {
+                float y = y1 + dy * (x - x1) / dx;
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.01f)));
                 glDrawArrays(GL_POINTS, 2, 1);
             }
-            // float startX = roundToCell(x1), startY = roundToCell(y1);
-            // float endX = roundToCell(x2), endY = roundToCell(y2);
-            // std::cout << "startX = " << startX << std::endl;
-            // std::cout << "startY = " << startY << std::endl;
-            // // Draw in squares
-            // ourShader.setVec3("ourColor", glm::vec3(0.51f, 0.5412f, 0.4274f));
-            // glBindVertexArray(squareVAO);
-            // ourShader.setMat4("transform", glm::translate(transform, glm::vec3(startX, startY, 0.0f)));
-            // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-            // ourShader.setMat4("transform", glm::translate(transform, glm::vec3(endX, endY, 0.0f)));
-            // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         }
         glBindVertexArray(VAOui);
         ourShader.setVec3("ourColor", glm::vec3(0.5529f, 0.1647f, 0.7804f));
