@@ -18,6 +18,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+void drawCircle(Shader& shader, int x, int y, int x1, int y1, glm::mat4& transform);
 
 // ----------------------
 // SETTINGS
@@ -44,6 +45,7 @@ int main(int argc, char* argv[])
     float x1 = 0.0f, y1 = 0.0f, z1 = 0.0f;
     float x2 = 0.0f, y2 = 0.0f, z2 = 0.0f;
     float x3 = 0.0f, y3 = 0.0f, z3 = 0.0f;
+    float circleRadius = 0.0f;
     int drawType = 0;
     int drawNumberOfVertices = 0;
     int currentArgv = 2;
@@ -87,6 +89,13 @@ int main(int argc, char* argv[])
         y3 = std::stof(std::string(argv[currentArgv++]));
         drawType = GL_TRIANGLES;
         drawNumberOfVertices = 3;
+    }
+    else if (*argv[1] == 'c')
+    {
+        std::cout << "Show circle" << std::endl;
+        x1 = std::stof(std::string(argv[currentArgv++]));
+        y1 = std::stof(std::string(argv[currentArgv++]));
+        circleRadius = std::stof(std::string(argv[currentArgv++]));
     }
     else
     {
@@ -471,9 +480,45 @@ int main(int argc, char* argv[])
                 }
             }
         }
+        else if (*argv[1] == 'c')
+        {
+            ourShader.setVec3("ourColor", glm::vec3(0.5529f, 0.1647f, 0.7804f));
+            glBindVertexArray(VAOui);
+            int x = 0, y = circleRadius;
+            int d = 3 - 2 * circleRadius;
+            drawCircle(ourShader, x, y, x1, y1, transform);
+            while (y >= x)
+            {
+                x++;
+                if (d > 0)
+                {
+                    y--;
+                    d = d + 4 * (x - y) + 10;
+                }
+                else
+                {
+                    d = d + 4 * x + 6;
+                }
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + x, y1 + y, 0.0f)));
+                glDrawArrays(GL_POINTS, 2, 1);
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - x, y1 + y, 0.0f)));
+                glDrawArrays(GL_POINTS, 2, 1);
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + x, y1 - y, 0.0f)));
+                glDrawArrays(GL_POINTS, 2, 1);
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - x, y1 - y, 0.0f)));
+                glDrawArrays(GL_POINTS, 2, 1);
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + y, y1 + x, 0.0f)));
+                glDrawArrays(GL_POINTS, 2, 1);
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - y, y1 + x, 0.0f)));
+                glDrawArrays(GL_POINTS, 2, 1);
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + y, y1 - x, 0.0f)));
+                glDrawArrays(GL_POINTS, 2, 1);
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - y, y1 - x, 0.0f)));
+                glDrawArrays(GL_POINTS, 2, 1);
+            }
+        }
         else
         {
-            glBindVertexArray(VAOui);
             ourShader.setVec3("ourColor", glm::vec3(0.5529f, 0.1647f, 0.7804f));
             ourShader.setMat4("transform", userTransform);
             glDrawArrays(drawType, 0, drawNumberOfVertices);
@@ -546,4 +591,24 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
+}
+
+void drawCircle(Shader& shader, int x, int y, int x1, int y1, glm::mat4& transform)
+{
+    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + x, y1 + y, 0.0f)));
+    glDrawArrays(GL_POINTS, 2, 1);
+    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - x, y1 + y, 0.0f)));
+    glDrawArrays(GL_POINTS, 2, 1);
+    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + x, y1 - y, 0.0f)));
+    glDrawArrays(GL_POINTS, 2, 1);
+    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - x, y1 - y, 0.0f)));
+    glDrawArrays(GL_POINTS, 2, 1);
+    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + y, y1 + x, 0.0f)));
+    glDrawArrays(GL_POINTS, 2, 1);
+    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - y, y1 + x, 0.0f)));
+    glDrawArrays(GL_POINTS, 2, 1);
+    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + y, y1 - x, 0.0f)));
+    glDrawArrays(GL_POINTS, 2, 1);
+    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - y, y1 - x, 0.0f)));
+    glDrawArrays(GL_POINTS, 2, 1);
 }
