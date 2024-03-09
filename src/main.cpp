@@ -6,6 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
+#include <iomanip>
 #include <cstring>
 #include <cmath>
 
@@ -17,7 +18,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-float roundToCell(float number);
 
 // ----------------------
 // SETTINGS
@@ -198,92 +198,92 @@ int main(int argc, char* argv[])
 
     float points2d[] = {
         // Axis X
-        -1.0f,  0.0f,  0.0f,
-         1.0f,  0.0f,  0.0f,
+        -10.0f,  0.0f,  0.0f,
+         10.0f,  0.0f,  0.0f,
          // Axis X points
-        -0.9f,   0.025f,  0.0f,
-        -0.9f,  -0.025f,  0.0f,
-        -0.8f,   0.025f,  0.0f,
-        -0.8f,  -0.025f,  0.0f,
-        -0.7f,   0.025f,  0.0f,
-        -0.7f,  -0.025f,  0.0f,
-        -0.6f,   0.025f,  0.0f,
-        -0.6f,  -0.025f,  0.0f,
-        -0.5f,   0.025f,  0.0f,
-        -0.5f,  -0.025f,  0.0f,
-        -0.4f,   0.025f,  0.0f,
-        -0.4f,  -0.025f,  0.0f,
-        -0.3f,   0.025f,  0.0f,
-        -0.3f,  -0.025f,  0.0f,
-        -0.2f,   0.025f,  0.0f,
-        -0.2f,  -0.025f,  0.0f,
-        -0.1f,   0.025f,  0.0f,
-        -0.1f,  -0.025f,  0.0f,
-         0.9f,   0.025f,  0.0f,
-         0.9f,  -0.025f,  0.0f,
-         0.8f,   0.025f,  0.0f,
-         0.8f,  -0.025f,  0.0f,
-         0.7f,   0.025f,  0.0f,
-         0.7f,  -0.025f,  0.0f,
-         0.6f,   0.025f,  0.0f,
-         0.6f,  -0.025f,  0.0f,
-         0.5f,   0.025f,  0.0f,
-         0.5f,  -0.025f,  0.0f,
-         0.4f,   0.025f,  0.0f,
-         0.4f,  -0.025f,  0.0f,
-         0.3f,   0.025f,  0.0f,
-         0.3f,  -0.025f,  0.0f,
-         0.2f,   0.025f,  0.0f,
-         0.2f,  -0.025f,  0.0f,
-         0.1f,   0.025f,  0.0f,
-         0.1f,  -0.025f,  0.0f,
+        -9.0f,   0.025f,  0.0f,
+        -9.0f,  -0.025f,  0.0f,
+        -8.0f,   0.025f,  0.0f,
+        -8.0f,  -0.025f,  0.0f,
+        -7.0f,   0.025f,  0.0f,
+        -7.0f,  -0.025f,  0.0f,
+        -6.0f,   0.025f,  0.0f,
+        -6.0f,  -0.025f,  0.0f,
+        -5.0f,   0.025f,  0.0f,
+        -5.0f,  -0.025f,  0.0f,
+        -4.0f,   0.025f,  0.0f,
+        -4.0f,  -0.025f,  0.0f,
+        -3.0f,   0.025f,  0.0f,
+        -3.0f,  -0.025f,  0.0f,
+        -2.0f,   0.025f,  0.0f,
+        -2.0f,  -0.025f,  0.0f,
+        -1.0f,   0.025f,  0.0f,
+        -1.0f,  -0.025f,  0.0f,
+         9.0f,   0.025f,  0.0f,
+         9.0f,  -0.025f,  0.0f,
+         8.0f,   0.025f,  0.0f,
+         8.0f,  -0.025f,  0.0f,
+         7.0f,   0.025f,  0.0f,
+         7.0f,  -0.025f,  0.0f,
+         6.0f,   0.025f,  0.0f,
+         6.0f,  -0.025f,  0.0f,
+         5.0f,   0.025f,  0.0f,
+         5.0f,  -0.025f,  0.0f,
+         4.0f,   0.025f,  0.0f,
+         4.0f,  -0.025f,  0.0f,
+         3.0f,   0.025f,  0.0f,
+         3.0f,  -0.025f,  0.0f,
+         2.0f,   0.025f,  0.0f,
+         2.0f,  -0.025f,  0.0f,
+         1.0f,   0.025f,  0.0f,
+         1.0f,  -0.025f,  0.0f,
          // Axis Y
-         0.0f, -1.0f,  0.0f,
-         0.0f,  1.0f,  0.0f,
+         0.0f, -10.0f,  0.0f,
+         0.0f,  10.0f,  0.0f,
          // Axis Y points
-         0.025f,  -0.9f,  0.0f,
-        -0.025f,  -0.9f,  0.0f,
-         0.025f,  -0.8f,  0.0f,
-        -0.025f,  -0.8f,  0.0f,
-         0.025f,  -0.7f,  0.0f,
-        -0.025f,  -0.7f,  0.0f,
-         0.025f,  -0.6f,  0.0f,
-        -0.025f,  -0.6f,  0.0f,
-         0.025f,  -0.5f,  0.0f,
-        -0.025f,  -0.5f,  0.0f,
-         0.025f,  -0.4f,  0.0f,
-        -0.025f,  -0.4f,  0.0f,
-         0.025f,  -0.3f,  0.0f,
-        -0.025f,  -0.3f,  0.0f,
-         0.025f,  -0.2f,  0.0f,
-        -0.025f,  -0.2f,  0.0f,
-         0.025f,  -0.1f,  0.0f,
-        -0.025f,  -0.1f,  0.0f,
-         0.025f,   0.9f,  0.0f,
-        -0.025f,   0.9f,  0.0f,
-         0.025f,   0.8f,  0.0f,
-        -0.025f,   0.8f,  0.0f,
-         0.025f,   0.7f,  0.0f,
-        -0.025f,   0.7f,  0.0f,
-         0.025f,   0.6f,  0.0f,
-        -0.025f,   0.6f,  0.0f,
-         0.025f,   0.5f,  0.0f,
-        -0.025f,   0.5f,  0.0f,
-         0.025f,   0.4f,  0.0f,
-        -0.025f,   0.4f,  0.0f,
-         0.025f,   0.3f,  0.0f,
-        -0.025f,   0.3f,  0.0f,
-         0.025f,   0.2f,  0.0f,
-        -0.025f,   0.2f,  0.0f,
-         0.025f,   0.1f,  0.0f,
-        -0.025f,   0.1f,  0.0f,
+         0.025f,  -9.0f,  0.0f,
+        -0.025f,  -9.0f,  0.0f,
+         0.025f,  -8.0f,  0.0f,
+        -0.025f,  -8.0f,  0.0f,
+         0.025f,  -7.0f,  0.0f,
+        -0.025f,  -7.0f,  0.0f,
+         0.025f,  -6.0f,  0.0f,
+        -0.025f,  -6.0f,  0.0f,
+         0.025f,  -5.0f,  0.0f,
+        -0.025f,  -5.0f,  0.0f,
+         0.025f,  -4.0f,  0.0f,
+        -0.025f,  -4.0f,  0.0f,
+         0.025f,  -3.0f,  0.0f,
+        -0.025f,  -3.0f,  0.0f,
+         0.025f,  -2.0f,  0.0f,
+        -0.025f,  -2.0f,  0.0f,
+         0.025f,  -1.0f,  0.0f,
+        -0.025f,  -1.0f,  0.0f,
+         0.025f,   9.0f,  0.0f,
+        -0.025f,   9.0f,  0.0f,
+         0.025f,   8.0f,  0.0f,
+        -0.025f,   8.0f,  0.0f,
+         0.025f,   7.0f,  0.0f,
+        -0.025f,   7.0f,  0.0f,
+         0.025f,   6.0f,  0.0f,
+        -0.025f,   6.0f,  0.0f,
+         0.025f,   5.0f,  0.0f,
+        -0.025f,   5.0f,  0.0f,
+         0.025f,   4.0f,  0.0f,
+        -0.025f,   4.0f,  0.0f,
+         0.025f,   3.0f,  0.0f,
+        -0.025f,   3.0f,  0.0f,
+         0.025f,   2.0f,  0.0f,
+        -0.025f,   2.0f,  0.0f,
+         0.025f,   1.0f,  0.0f,
+        -0.025f,   1.0f,  0.0f,
     };
 
     float squareVertices[] = {
         0.0f, 0.0f, 0.0f,
-        0.0f, 0.1f, 0.0f,
-        0.1f, 0.1f, 0.0f,
-        0.1f, 0.0f, 0.0f
+        0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,
+        1.0f, 0.0f, 0.0f
     };
     unsigned int squareIndices[] = {
         0, 1, 3,
@@ -333,11 +333,6 @@ int main(int argc, char* argv[])
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-            x1 /= 10.0f;
-            y1 /= 10.0f;
-            x2 /= 10.0f;
-            y2 /= 10.0f;
-
     while (!glfwWindowShouldClose(window))
     {
         // ----------------------
@@ -365,16 +360,17 @@ int main(int argc, char* argv[])
 
 
         glm::mat4 model = glm::mat4(1.0f);
+        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
         ourShader.setMat4("model", model);
         // ----------------------
         // Draw net
         glBindVertexArray(axisVAO);
-        for (float y = -1.0f; y <= 1.1f; y += 0.1f)
+        for (float y = -10.0f; y <= 10.0f; y += 1.0f)
         {
             ourShader.setMat4("transform", glm::translate(transform, glm::vec3(0.0f, y, 0.0f)));
             glDrawArrays(GL_LINES, 0, 2);
         }
-        for (float x = -1.0f; x <= 1.1f; x += 0.1f)
+        for (float x = -10.0f; x <= 10.0f; x += 1.0f)
         {
             ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, 0.0f, 0.0f)));
             glDrawArrays(GL_LINES, 38, 2);
@@ -382,8 +378,6 @@ int main(int argc, char* argv[])
         // ----------------------
         // Draw axis
         glBindVertexArray(axisVAO);
-        model = glm::mat4(1.0f);
-        ourShader.setMat4("model", model);
         transform = glm::mat4(1.0f);
         ourShader.setMat4("transform", transform);
         ourShader.setVec3("ourColor", glm::vec3(0.0f, 1.0f, 0.0f));
@@ -395,7 +389,6 @@ int main(int argc, char* argv[])
         // Draw figures
         if (*argv[1] == 'l')
         {
-            std::cout << "(" << x1 << ";" << y1 << ")" << " - " << "(" << x2 << ";" << y2 << ")" << std::endl;
             float step;
             float dx = x2 - x1;
             float dy = y2 - y1;
@@ -407,37 +400,23 @@ int main(int argc, char* argv[])
             {
                 step = fabs(dy);
             }
-            step = step * 10.0f;
             dx = dx / step;
             dy = dy / step;
-            float fixNegativeDY = 0.0;
-            float fixXNegativeDY = 0.0;
-            if (dy < 0)
-            {
-                fixNegativeDY = -0.1f;
-                fixXNegativeDY = 0.05f;
-            }
-            std::cout << "step = " << step << " dx = " << dx << " dy = " << dy << std::endl;
             float x = x1, y = y1;
             ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.9215, 0.2196));
-                glBindVertexArray(squareVAO);
+            glBindVertexArray(squareVAO);
             for (int i = 0; i < step; i++)
             {
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, roundToCell(y + fixNegativeDY), 0.0f)));
-                // ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
-                // glDrawArrays(GL_POINTS, 2, 1);
+                float tX = x;
+                float tY = y;
+                if (dy < 0)
+                {
+                    tY -= 1.0f;
+                }
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(round(tX - 0.4f), round(tY), 0.0f)));
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
                 x += dx;
                 y += dy;
-            }
-                                    // Draw in points
-            ourShader.setVec3("ourColor", glm::vec3(0.5529f, 0.1647f, 0.7804f));
-            glBindVertexArray(VAOui);
-            for (float x = x1; x < x2; x += 0.0001)
-            {
-                float y = y1 + dy * (x - x1) / dx;
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.01f)));
-                glDrawArrays(GL_POINTS, 2, 1);
             }
         }
         else
@@ -515,10 +494,4 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
-}
-
-float roundToCell(float number)
-{
-    float rounded = ((int) (number * 10.0f)) / 10.0f;
-    return rounded;
 }
