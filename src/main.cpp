@@ -445,9 +445,11 @@ int main(int argc, char* argv[])
             dx = dx / step;
             dy = dy / step;
             float fixNegativeDY = 0.0;
+            float fixXNegativeDY = 0.0;
             if (dy < 0)
             {
                 fixNegativeDY = -0.1f;
+                fixXNegativeDY = 0.05f;
             }
             std::cout << "step = " << step << " dx = " << dx << " dy = " << dy << std::endl;
             float x = x1, y = y1;
@@ -455,7 +457,7 @@ int main(int argc, char* argv[])
             {
                 // std::cout << "i = " << i << " | x = " << x << " rounded = " << roundToCell(x + 0.5f) << std::endl;
                 glBindVertexArray(squareVAO);
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(roundToCell(x + 0.05f), roundToCell(y + fixNegativeDY), 0.0f)));
+                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(roundToCell(x + fixXNegativeDY), roundToCell(y + fixNegativeDY), 0.0f)));
                 // ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
                 // glDrawArrays(GL_POINTS, 2, 1);
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
