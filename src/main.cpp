@@ -314,80 +314,27 @@ int main(int argc, char* argv[])
         // Draw figures
         if (*argv[1] == 'l')
         {
-            // ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.9215, 0.2196));
-            ourShader.setVec3("ourColor", glm::vec3(0.5529f, 0.1647f, 0.7804f));
-            glBindVertexArray(squareVAO);
-
-            int dx, dy, i, e;
-            int incX, incY, inc1, inc2;
-            int x, y;
-
-            dx = x2 - x1;
-            dy = y2 - y1;
-
-            if (dx < 0)
+            float step;
+            float dx = x2 - x1;
+            float dy = y2 - y1;
+            if (fabs(dx) >= fabs(dy))
             {
-                dx = -dx;
-            }
-            if (dy < 0)
-            {
-                dy = -dy;
-            }
-
-            incX = 1;
-            if (x2 < x1)
-            {
-                incX = -1;
-            }
-
-            incY = 1;
-            if (y2 < y1)
-            {
-                incY = -1;
-            }
-            x = x1; y = y1;
-            if (dx > dy)
-            {
-                drawPixel(ourShader, x, y, transform);
-                e = 2 * dy - dx;
-                inc1 = 2 * (dy - dx);
-                inc2 = 2 * dy;
-                for (i = 0; i < dx; i++)
-                {
-                    if (e >= 0)
-                    {
-                        y += incY;
-                        e += inc1;
-                    }
-                    else
-                    {
-                        e += inc2;
-                    }
-                    x += incX;
-                    drawPixel(ourShader, x, y, transform);
-                }
-
+                step = fabs(dx);
             }
             else
             {
+                step = fabs(dy);
+            }
+            dx = dx / step;
+            dy = dy / step;
+            float x = x1, y = y1;
+            ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.9215, 0.2196));
+            glBindVertexArray(squareVAO);
+            for (int i = 0; i < step; i++)
+            {
                 drawPixel(ourShader, x, y, transform);
-                e = 2 * dx - dy;
-                inc1 = 2 * (dx - dy);
-                inc2 = 2 * dx;
-                for (i = 0; i < dy; i++)
-                {
-                    if (e >= 0)
-                    {
-                        x += incX;
-                        e += inc1;
-                    }
-                    else
-                    {
-                        e += inc2;
-                    }
-                    y += incY;
-                    drawPixel(ourShader, x, y, transform);
-                }
+                x += dx;
+                y += dy;
             }
         }
         else if (*argv[1] == 'c')
