@@ -314,27 +314,23 @@ int main(int argc, char* argv[])
         // Draw figures
         if (*argv[1] == 'l')
         {
-            float step;
-            float dx = x2 - x1;
-            float dy = y2 - y1;
-            if (fabs(dx) >= fabs(dy))
+            if (x2 < x1)
             {
-                step = fabs(dx);
+                float t = x1;
+                x1 = x2;
+                x2 = t;
+                t = y1;
+                y1 = y2;
+                y2 = t;
             }
-            else
-            {
-                step = fabs(dy);
-            }
-            dx = dx / step;
-            dy = dy / step;
-            float x = x1, y = y1;
+            int dx = x2 - x1;
+            int dy = y2 - y1;
             ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.9215, 0.2196));
             glBindVertexArray(squareVAO);
-            for (int i = 0; i < step; i++)
+            for (int x = x1; x <= x2; x++)
             {
+                int y = y1 + dy * (x - x1) / dx;
                 drawPixel(ourShader, x, y, transform);
-                x += dx;
-                y += dy;
             }
         }
         else if (*argv[1] == 'c')
