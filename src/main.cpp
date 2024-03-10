@@ -18,6 +18,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+void drawPixel(Shader& shader, int x, int y, glm::mat4& transform);
 void drawCircle(Shader& shader, int x, int y, int x1, int y1, glm::mat4& transform);
 
 // ----------------------
@@ -206,93 +207,17 @@ int main(int argc, char* argv[])
     Shader ourShader("./src/shader/shader.vert", "./src/shader/shader.frag");
 
     float points2d[] = {
-        // Axis X
-        -10.0f,  0.0f,  0.0f,
-         10.0f,  0.0f,  0.0f,
-         // Axis X points
-        -9.0f,   0.025f,  0.0f,
-        -9.0f,  -0.025f,  0.0f,
-        -8.0f,   0.025f,  0.0f,
-        -8.0f,  -0.025f,  0.0f,
-        -7.0f,   0.025f,  0.0f,
-        -7.0f,  -0.025f,  0.0f,
-        -6.0f,   0.025f,  0.0f,
-        -6.0f,  -0.025f,  0.0f,
-        -5.0f,   0.025f,  0.0f,
-        -5.0f,  -0.025f,  0.0f,
-        -4.0f,   0.025f,  0.0f,
-        -4.0f,  -0.025f,  0.0f,
-        -3.0f,   0.025f,  0.0f,
-        -3.0f,  -0.025f,  0.0f,
-        -2.0f,   0.025f,  0.0f,
-        -2.0f,  -0.025f,  0.0f,
-        -1.0f,   0.025f,  0.0f,
-        -1.0f,  -0.025f,  0.0f,
-         9.0f,   0.025f,  0.0f,
-         9.0f,  -0.025f,  0.0f,
-         8.0f,   0.025f,  0.0f,
-         8.0f,  -0.025f,  0.0f,
-         7.0f,   0.025f,  0.0f,
-         7.0f,  -0.025f,  0.0f,
-         6.0f,   0.025f,  0.0f,
-         6.0f,  -0.025f,  0.0f,
-         5.0f,   0.025f,  0.0f,
-         5.0f,  -0.025f,  0.0f,
-         4.0f,   0.025f,  0.0f,
-         4.0f,  -0.025f,  0.0f,
-         3.0f,   0.025f,  0.0f,
-         3.0f,  -0.025f,  0.0f,
-         2.0f,   0.025f,  0.0f,
-         2.0f,  -0.025f,  0.0f,
-         1.0f,   0.025f,  0.0f,
-         1.0f,  -0.025f,  0.0f,
-         // Axis Y
-         0.0f, -10.0f,  0.0f,
-         0.0f,  10.0f,  0.0f,
-         // Axis Y points
-         0.025f,  -9.0f,  0.0f,
-        -0.025f,  -9.0f,  0.0f,
-         0.025f,  -8.0f,  0.0f,
-        -0.025f,  -8.0f,  0.0f,
-         0.025f,  -7.0f,  0.0f,
-        -0.025f,  -7.0f,  0.0f,
-         0.025f,  -6.0f,  0.0f,
-        -0.025f,  -6.0f,  0.0f,
-         0.025f,  -5.0f,  0.0f,
-        -0.025f,  -5.0f,  0.0f,
-         0.025f,  -4.0f,  0.0f,
-        -0.025f,  -4.0f,  0.0f,
-         0.025f,  -3.0f,  0.0f,
-        -0.025f,  -3.0f,  0.0f,
-         0.025f,  -2.0f,  0.0f,
-        -0.025f,  -2.0f,  0.0f,
-         0.025f,  -1.0f,  0.0f,
-        -0.025f,  -1.0f,  0.0f,
-         0.025f,   9.0f,  0.0f,
-        -0.025f,   9.0f,  0.0f,
-         0.025f,   8.0f,  0.0f,
-        -0.025f,   8.0f,  0.0f,
-         0.025f,   7.0f,  0.0f,
-        -0.025f,   7.0f,  0.0f,
-         0.025f,   6.0f,  0.0f,
-        -0.025f,   6.0f,  0.0f,
-         0.025f,   5.0f,  0.0f,
-        -0.025f,   5.0f,  0.0f,
-         0.025f,   4.0f,  0.0f,
-        -0.025f,   4.0f,  0.0f,
-         0.025f,   3.0f,  0.0f,
-        -0.025f,   3.0f,  0.0f,
-         0.025f,   2.0f,  0.0f,
-        -0.025f,   2.0f,  0.0f,
-         0.025f,   1.0f,  0.0f,
-        -0.025f,   1.0f,  0.0f,
+        -20.5f,  0.0f,  0.0f,
+         20.5f,  0.0f,  0.0f,
+         0.0f, -20.5f,  0.0f,
+         0.0f,  20.5f,  0.0f,
     };
 
     float squareVertices[] = {
-        0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 0.0f,
-        1.0f, 0.0f, 0.0f
+        -0.5f, -0.5f, 0.0f,
+        -0.5f,  0.5f, 0.0f,
+         0.5f,  0.5f, 0.0f,
+         0.5f, -0.5f, 0.0f
     };
     unsigned int squareIndices[] = {
         0, 1, 3,
@@ -369,32 +294,22 @@ int main(int argc, char* argv[])
 
 
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
+        model = glm::scale(model, glm::vec3(0.06f, 0.06f, 0.06f));
         ourShader.setMat4("model", model);
         // ----------------------
         // Draw net
         glBindVertexArray(axisVAO);
-        for (float y = -10.0f; y <= 10.0f; y += 1.0f)
+        for (float y = -20.5f; y <= 20.5f; y += 1.0f)
         {
             ourShader.setMat4("transform", glm::translate(transform, glm::vec3(0.0f, y, 0.0f)));
             glDrawArrays(GL_LINES, 0, 2);
         }
-        for (float x = -10.0f; x <= 10.0f; x += 1.0f)
+        for (float x = -20.5f; x <= 20.5f; x += 1.0f)
         {
             ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, 0.0f, 0.0f)));
-            glDrawArrays(GL_LINES, 38, 2);
+            glDrawArrays(GL_LINES, 2, 2);
         }
-        // ----------------------
-        // Draw axis
-        glBindVertexArray(axisVAO);
-        transform = glm::mat4(1.0f);
-        ourShader.setMat4("transform", transform);
-        ourShader.setVec3("ourColor", glm::vec3(0.0f, 1.0f, 0.0f));
-        glDrawArrays(GL_LINES, 0, 38);
-        ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.0f, 0.0f));
-        glDrawArrays(GL_LINES, 38, 38);
 
-        glPointSize(6.0f);
         // ----------------------
         // Draw figures
         if (*argv[1] == 'l')
@@ -483,7 +398,7 @@ int main(int argc, char* argv[])
         else if (*argv[1] == 'c')
         {
             ourShader.setVec3("ourColor", glm::vec3(0.5529f, 0.1647f, 0.7804f));
-            glBindVertexArray(VAOui);
+            glBindVertexArray(squareVAO);
             int x = 0, y = circleRadius;
             int d = 3 - 2 * circleRadius;
             drawCircle(ourShader, x, y, x1, y1, transform);
@@ -499,23 +414,21 @@ int main(int argc, char* argv[])
                 {
                     d = d + 4 * x + 6;
                 }
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + x, y1 + y, 0.0f)));
-                glDrawArrays(GL_POINTS, 2, 1);
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - x, y1 + y, 0.0f)));
-                glDrawArrays(GL_POINTS, 2, 1);
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + x, y1 - y, 0.0f)));
-                glDrawArrays(GL_POINTS, 2, 1);
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - x, y1 - y, 0.0f)));
-                glDrawArrays(GL_POINTS, 2, 1);
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + y, y1 + x, 0.0f)));
-                glDrawArrays(GL_POINTS, 2, 1);
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - y, y1 + x, 0.0f)));
-                glDrawArrays(GL_POINTS, 2, 1);
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + y, y1 - x, 0.0f)));
-                glDrawArrays(GL_POINTS, 2, 1);
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - y, y1 - x, 0.0f)));
-                glDrawArrays(GL_POINTS, 2, 1);
+                drawCircle(ourShader, x, y, x1, y1, transform);
+                drawCircle(ourShader, x, y, x1, y1, transform);
+                drawCircle(ourShader, x, y, x1, y1, transform);
+                drawCircle(ourShader, x, y, x1, y1, transform);
+                drawCircle(ourShader, y, x, x1, y1, transform);
+                drawCircle(ourShader, y, x, x1, y1, transform);
+                drawCircle(ourShader, y, x, x1, y1, transform);
+                drawCircle(ourShader, y, x, x1, y1, transform);
             }
+        }
+        else if (*argv[1] == 'p')
+        {
+            glBindVertexArray(squareVAO);
+            ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1, y1, 0.0f)));
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         }
         else
         {
@@ -531,6 +444,9 @@ int main(int argc, char* argv[])
 
     glDeleteVertexArrays(1, &axisVAO);
     glDeleteBuffers(1, &axisVBO);
+    glDeleteVertexArrays(1, &squareVAO);
+    glDeleteBuffers(1, &squareVBO);
+    glDeleteBuffers(1, &squareEBO);
 
     glfwTerminate();
     return 0;
@@ -593,22 +509,20 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+void drawPixel(Shader& shader, int x, int y, glm::mat4& transform)
+{
+    shader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
 void drawCircle(Shader& shader, int x, int y, int x1, int y1, glm::mat4& transform)
 {
-    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + x, y1 + y, 0.0f)));
-    glDrawArrays(GL_POINTS, 2, 1);
-    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - x, y1 + y, 0.0f)));
-    glDrawArrays(GL_POINTS, 2, 1);
-    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + x, y1 - y, 0.0f)));
-    glDrawArrays(GL_POINTS, 2, 1);
-    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - x, y1 - y, 0.0f)));
-    glDrawArrays(GL_POINTS, 2, 1);
-    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + y, y1 + x, 0.0f)));
-    glDrawArrays(GL_POINTS, 2, 1);
-    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - y, y1 + x, 0.0f)));
-    glDrawArrays(GL_POINTS, 2, 1);
-    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 + y, y1 - x, 0.0f)));
-    glDrawArrays(GL_POINTS, 2, 1);
-    shader.setMat4("transform", glm::translate(transform, glm::vec3(x1 - y, y1 - x, 0.0f)));
-    glDrawArrays(GL_POINTS, 2, 1);
+    drawPixel(shader, x1 + x, y1 + y, transform);
+    drawPixel(shader, x1 - x, y1 + y, transform);
+    drawPixel(shader, x1 + x, y1 - y, transform);
+    drawPixel(shader, x1 - x, y1 - y, transform);
+    drawPixel(shader, x1 + y, y1 + x, transform);
+    drawPixel(shader, x1 - y, y1 + x, transform);
+    drawPixel(shader, x1 + y, y1 - x, transform);
+    drawPixel(shader, x1 - y, y1 - x, transform);
 }
