@@ -316,8 +316,7 @@ int main(int argc, char* argv[])
         {
             // ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.9215, 0.2196));
             ourShader.setVec3("ourColor", glm::vec3(0.5529f, 0.1647f, 0.7804f));
-            // glBindVertexArray(squareVAO);
-            glBindVertexArray(VAOui);
+            glBindVertexArray(squareVAO);
 
             int dx, dy, i, e;
             int incX, incY, inc1, inc2;
@@ -349,8 +348,7 @@ int main(int argc, char* argv[])
             x = x1; y = y1;
             if (dx > dy)
             {
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
-                glDrawArrays(GL_POINTS, 2, 1);
+                drawPixel(ourShader, x, y, transform);
                 e = 2 * dy - dx;
                 inc1 = 2 * (dy - dx);
                 inc2 = 2 * dy;
@@ -366,15 +364,13 @@ int main(int argc, char* argv[])
                         e += inc2;
                     }
                     x += incX;
-                    ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
-                    glDrawArrays(GL_POINTS, 2, 1);
+                    drawPixel(ourShader, x, y, transform);
                 }
 
             }
             else
             {
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
-                glDrawArrays(GL_POINTS, 2, 1);
+                drawPixel(ourShader, x, y, transform);
                 e = 2 * dx - dy;
                 inc1 = 2 * (dx - dy);
                 inc2 = 2 * dx;
@@ -390,8 +386,7 @@ int main(int argc, char* argv[])
                         e += inc2;
                     }
                     y += incY;
-                    ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
-                    glDrawArrays(GL_POINTS, 2, 1);
+                    drawPixel(ourShader, x, y, transform);
                 }
             }
         }
