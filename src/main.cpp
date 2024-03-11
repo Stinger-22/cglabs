@@ -14,10 +14,213 @@
 #include <camera.hpp>
 
 
+struct EdgeSample
+{
+    int minY;
+    int maxY;
+    float xOfYMin;
+    float inverseSlope;
+
+    EdgeSample()
+    {
+        this->minY = 0;
+        this->maxY = 0;
+        this->xOfYMin = 0;
+        this->inverseSlope = 0.0f;
+    }
+
+    EdgeSample(int minY, int maxY, int xOfYMin, float inverseSlope)
+    {
+        this->minY = minY;
+        this->maxY = maxY;
+        this->xOfYMin = xOfYMin;
+        this->inverseSlope = inverseSlope;
+    }
+
+    void print()
+    {
+        std::cout << "minY = " << minY << " | maxY = " << maxY << " | xOfYMin = " << xOfYMin << " | inverseSlope = " << inverseSlope << std::endl;
+    }
+};
+
+struct EdgeTable
+{
+    int maxNumberOfVertices;
+    int currentNumberOfVertices;
+    struct EdgeSample* table;
+
+    EdgeTable(int maxNumberOfVertices)
+    {
+        this->maxNumberOfVertices = maxNumberOfVertices;
+        table = new struct EdgeSample[maxNumberOfVertices];
+        currentNumberOfVertices = 0;
+    }
+
+    void add(int x1, int y1, int x2, int y2)
+    {
+        // Skip horizontal lines
+        if (y1 == y2)
+        {
+            return;
+        }
+
+        float slope, inverseSlope;
+        int minY, maxY, x;
+        if (x2 == x1)
+        {
+            inverseSlope = 0.0f;
+        }
+        else
+        {
+            slope = ((float)(y2 - y1)) / ((float)(x2 - x1));
+            inverseSlope = 1.0f / slope;
+        }
+        if (y1 > y2)
+        {
+            maxY = y1;
+            minY = y2;
+            x = x2;
+        }
+        else
+        {
+            maxY = y2;
+            minY = y1;
+            x = x1;
+        }
+        table[currentNumberOfVertices++] = EdgeSample(minY, maxY, x, inverseSlope);
+    }
+
+    void add(EdgeSample edgeSample)
+    {
+        table[currentNumberOfVertices++] = edgeSample;
+    }
+
+    // Bubble sort cause array is small and I'm lazy
+    void sortByY()
+    {
+        for (int i = 0; i < currentNumberOfVertices - 1; i++)
+        {
+            for (int j = 0; j < currentNumberOfVertices - i - 1; j++)
+            {
+                if (table[j].minY < table[j + 1].minY)
+                {
+                    EdgeSample t = table[j];
+                    table[j] = table[j + 1];
+                    table[j + 1] = t;
+                }
+                else if (table[j].minY == table[j + 1].minY)
+                {
+                    if (table[j].maxY < table[j + 1].maxY)
+                    {
+                        EdgeSample t = table[j];
+                        table[j] = table[j + 1];
+                        table[j + 1] = t;
+                    }
+                }
+            }
+        }
+    }
+
+    void sortByX()
+    {
+        for (int i = 0; i < currentNumberOfVertices - 1; i++)
+        {
+            for (int j = 0; j < currentNumberOfVertices - i - 1; j++)
+            {
+                if (table[j].xOfYMin > table[j + 1].xOfYMin)
+                {
+                    EdgeSample t = table[j];
+                    table[j] = table[j + 1];
+                    table[j + 1] = t;
+                }
+            }
+        }
+    }
+
+    void print()
+    {
+        std::cout << "EdgeTable:\n";
+        for (int i = 0; i < currentNumberOfVertices; i++)
+        {
+            table[i].print();
+            std::cout << std::endl;
+        }
+    }
+
+    bool isEmpty()
+    {
+        return currentNumberOfVertices == 0;
+    }
+
+    int getMinYMin()
+    {
+        if (isEmpty())
+        {
+            return 0;
+        }
+        return table[currentNumberOfVertices - 1].minY;
+    }
+    int getMaxYMin()
+    {
+        if (isEmpty())
+        {
+            return 0;
+        }
+        return table[0].minY;
+    }
+
+    EdgeSample getLastEdgeSample()
+    {
+        return table[currentNumberOfVertices - 1];
+    }
+
+    EdgeSample removeLastEdgeSample()
+    {
+        return table[currentNumberOfVertices-- - 1];
+    }
+
+    void updateX()
+    {
+        for (int i = 0; i < currentNumberOfVertices; i++)
+        {
+            table[i].xOfYMin = (float) table[i].xOfYMin + table[i].inverseSlope;
+        }
+    }
+
+    void clearYYMax(int y)
+    {
+        for (int i = 0; i < currentNumberOfVertices; i++)
+        {
+            if (y >= table[i].maxY)
+            {
+                for (int j = i; j < currentNumberOfVertices - 1; j++)
+                {
+                    table[j] = table[j + 1];
+                }
+                currentNumberOfVertices--;
+                i--;
+            }
+        }
+    }
+
+    EdgeTable& operator=(const EdgeTable& other)
+    {
+        maxNumberOfVertices = other.maxNumberOfVertices;
+        currentNumberOfVertices = other.currentNumberOfVertices;
+        table = new struct EdgeSample[maxNumberOfVertices];
+        for (int i = 0; i < currentNumberOfVertices; i++)
+        {
+            table[i] = other.table[i];
+        }
+    }
+};
+
+// Window functions
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+// Circle functions
 void drawPixel(Shader& shader, int x, int y, glm::mat4& transform);
 void drawCircle(Shader& shader, int x, int y, int x1, int y1, glm::mat4& transform);
 
@@ -43,9 +246,9 @@ float lastY = SCREEN_HEIGHT / 2.0f;
 int main(int argc, char* argv[])
 {
     std::cout << "argc = " << argc << std::endl;
-    float x1 = 0.0f, y1 = 0.0f, z1 = 0.0f;
-    float x2 = 0.0f, y2 = 0.0f, z2 = 0.0f;
-    float x3 = 0.0f, y3 = 0.0f, z3 = 0.0f;
+    float x1 = 0.0f, y1 = 0.0f;
+    float x2 = 0.0f, y2 = 0.0f;
+    float x3 = 0.0f, y3 = 0.0f;
     float circleRadius = 0.0f;
     int drawType = 0;
     int drawNumberOfVertices = 0;
@@ -54,7 +257,11 @@ int main(int argc, char* argv[])
     float rotate = 0.0f;
     float translateX = 0.0f, translateY = 0.0f, translateZ = 0.0f;
     float scaleOX = 1.0f, scaleOY = 1.0f, scaleOZ = 1.0f;
+    int polygonNumberOfVertices;
+    int* polygonVertices;
     glm::mat4 userTransform = glm::mat4(1.0f);
+    struct EdgeTable *originEdgeTable;
+
     if (argc <= 1)
     {
         std::cout << "Usage is:" << std::endl;
@@ -97,6 +304,25 @@ int main(int argc, char* argv[])
         x1 = std::stof(std::string(argv[currentArgv++]));
         y1 = std::stof(std::string(argv[currentArgv++]));
         circleRadius = std::stof(std::string(argv[currentArgv++]));
+    }
+    else if (*argv[1] == 'g')
+    {
+        std::cout << "Show polygon" << std::endl;
+        polygonNumberOfVertices = std::stoi(std::string(argv[currentArgv++]));
+        polygonVertices = new int[polygonNumberOfVertices * 2];
+        for (int i = 0; i < polygonNumberOfVertices * 2; i++)
+        {
+            polygonVertices[i] = std::stoi(std::string(argv[currentArgv++]));
+        }
+        originEdgeTable = new struct EdgeTable(polygonNumberOfVertices);
+        for (int i = 0; i < polygonNumberOfVertices * 2 - 2; i += 2)
+        {
+            originEdgeTable->add(polygonVertices[i], polygonVertices[i + 1], polygonVertices[i + 2], polygonVertices[i + 3]);
+        }
+        originEdgeTable->add(polygonVertices[0], polygonVertices[1], polygonVertices[polygonNumberOfVertices * 2 - 2], polygonVertices[polygonNumberOfVertices * 2 - 1]);
+        originEdgeTable->print();
+        originEdgeTable->sortByY();
+        originEdgeTable->print();
     }
     else
     {
@@ -427,8 +653,48 @@ int main(int argc, char* argv[])
         else if (*argv[1] == 'p')
         {
             glBindVertexArray(squareVAO);
-            ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x1, y1, 0.0f)));
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+            drawPixel(ourShader, x1, y1, transform);
+        }
+        else if (*argv[1] == 'g')
+        {
+            ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.9215, 0.2196));
+            glBindVertexArray(squareVAO);
+            EdgeTable edgeTable = *originEdgeTable;
+            EdgeTable *activeEdgeTable = new struct EdgeTable(polygonNumberOfVertices);
+            int y = edgeTable.getMinYMin();
+            while (edgeTable.isEmpty() == false || activeEdgeTable->isEmpty() == false)
+            {
+                if (edgeTable.isEmpty() == false)
+                {
+                    while (y == edgeTable.getMinYMin())
+                    {
+                        if (edgeTable.isEmpty())
+                        {
+                            break;
+                        }
+                        activeEdgeTable->add(edgeTable.removeLastEdgeSample());
+                    }
+                }
+                activeEdgeTable->sortByX();
+                for (int i = 0; i < activeEdgeTable->currentNumberOfVertices - 1; i+= 2)
+                {
+                    for (int x = activeEdgeTable->table[i].xOfYMin; x <= activeEdgeTable->table[i + 1].xOfYMin; x++)
+                    {
+                        // std::cout << "draw pixel " << activeEdgeTable->table[i].xOfYMin << " | " << y << std::endl;
+                        std::cout << "draw pixel " << x << " | " << y << std::endl;
+                        drawPixel(ourShader, x, y, transform);
+                    }
+                    // drawPixel(ourShader, activeEdgeTable->table[i].xOfYMin, y, transform);
+                }
+                y++;
+                activeEdgeTable->clearYYMax(y);
+                activeEdgeTable->updateX();
+            }
+            for (int i = 0; i < polygonNumberOfVertices * 2; i += 2)
+            {
+                ourShader.setVec3("ourColor", glm::vec3(0.5529f, 0.1647f, 0.7804f));
+                drawPixel(ourShader, polygonVertices[i], polygonVertices[i + 1], transform);
+            }
         }
         else
         {
