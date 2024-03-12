@@ -14,6 +14,35 @@
 #include <camera.hpp>
 
 
+struct Color
+{
+    float red;
+    float green;
+    float blue;
+    float alpha;
+
+    Color()
+    {
+        red = 0.0f;
+        green = 0.0f;
+        blue = 0.0f;
+        alpha = 0.0f;
+    }
+
+    Color(float red, float green, float blue)
+    {
+        this->red = red;
+        this->green = green;
+        this->blue = blue;
+    }
+
+    void print()
+    {
+        std::cout << "Pixel(" << red << ", " << green << ", " << blue << ")" << std::endl;
+    }
+};
+
+
 struct EdgeSample
 {
     int minY;
@@ -220,9 +249,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-// Circle functions
+// Drawing functions
 void drawPixel(Shader& shader, int x, int y, glm::mat4& transform);
 void drawCircle(Shader& shader, int x, int y, int x1, int y1, glm::mat4& transform);
+void drawLine(Shader& shader, int x1, int y1, int x2, int y2, glm::mat4& transform);
+void floodFill(Shader& shader, int x, int y, glm::mat4& transform);
 
 // ----------------------
 // SETTINGS
@@ -243,8 +274,55 @@ bool firstMouse = true;
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_HEIGHT / 2.0f;
 
+// Colors
+struct Color purple(0.5529f, 0.1647f, 0.7804f);
+struct Color yellow(1.0f, 0.9215f, 0.2196f);
+struct Color black(1.0f, 1.0f, 1.0f);
+
+int cells[41][41] = {0};
+void printCells()
+{
+    for (int i = 0; i < 41; i++)
+    {
+        for (int j = 0; j < 41; j++)
+        {
+            std::cout << cells[i][j] << " ";
+        }
+        std::cout << '\n';
+    }
+}
+
+void drawCellPixel(int x, int y)
+{
+    // std::cout << "base cell: " << x << " " << y << std::endl;
+    if (y > 0)
+    {
+        y = 20 - y;
+    }
+    else if (y <= 0)
+    {
+        y = abs(y) + 20;
+    }
+    // std::cout << "drawing in: cells[" << y << "][" << x + 20 << "]" << std::endl;
+    cells[y][x + 20] = 1;
+}
+
+bool isCellFilled(int x, int y)
+{
+    if (y > 0)
+    {
+        y = 20 - y;
+    }
+    else if (y <= 0)
+    {
+        y = abs(y) + 20;
+    }
+    return cells[y][x + 20] == 1;
+}
+
 int main(int argc, char* argv[])
 {
+    std::cout << "test: " << sizeof(cells) << std::endl;
     std::cout << "argc = " << argc << std::endl;
     float x1 = 0.0f, y1 = 0.0f;
     float x2 = 0.0f, y2 = 0.0f;
@@ -261,6 +339,8 @@ int main(int argc, char* argv[])
     int* polygonVertices;
     glm::mat4 userTransform = glm::mat4(1.0f);
     struct EdgeTable *originEdgeTable;
+    int xStartFill = 0, yStartFill = 0;
+    bool toFill = false;
 
     if (argc <= 1)
     {
@@ -395,6 +475,15 @@ int main(int argc, char* argv[])
             currentArgv++;
             scaleOX = std::stof(std::string(argv[currentArgv++]));
             scaleOY = std::stof(std::string(argv[currentArgv]));
+        }
+        else if (*argv[currentArgv] == 'f')
+        {
+            currentArgv++;
+            std::cout << "Doing fill" << std::endl;
+            toFill = true;
+            xStartFill = std::stoi(std::string(argv[currentArgv++]));
+            yStartFill = std::stoi(std::string(argv[currentArgv]));
+            std::cout << "start fill from: " << xStartFill << " " << yStartFill << std::endl;
         }
         currentArgv++;
     }
@@ -536,90 +625,15 @@ int main(int argc, char* argv[])
             glDrawArrays(GL_LINES, 2, 2);
         }
 
+        struct Color currentColor = black;
         // ----------------------
         // Draw figures
         if (*argv[1] == 'l')
         {
-            // ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.9215, 0.2196));
-            ourShader.setVec3("ourColor", glm::vec3(0.5529f, 0.1647f, 0.7804f));
-            // glBindVertexArray(squareVAO);
-            glBindVertexArray(VAOui);
-
-            int dx, dy, i, e;
-            int incX, incY, inc1, inc2;
-            int x, y;
-
-            dx = x2 - x1;
-            dy = y2 - y1;
-
-            if (dx < 0)
-            {
-                dx = -dx;
-            }
-            if (dy < 0)
-            {
-                dy = -dy;
-            }
-
-            incX = 1;
-            if (x2 < x1)
-            {
-                incX = -1;
-            }
-
-            incY = 1;
-            if (y2 < y1)
-            {
-                incY = -1;
-            }
-            x = x1; y = y1;
-            if (dx > dy)
-            {
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
-                glDrawArrays(GL_POINTS, 2, 1);
-                e = 2 * dy - dx;
-                inc1 = 2 * (dy - dx);
-                inc2 = 2 * dy;
-                for (i = 0; i < dx; i++)
-                {
-                    if (e >= 0)
-                    {
-                        y += incY;
-                        e += inc1;
-                    }
-                    else
-                    {
-                        e += inc2;
-                    }
-                    x += incX;
-                    ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
-                    glDrawArrays(GL_POINTS, 2, 1);
-                }
-
-            }
-            else
-            {
-                ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
-                glDrawArrays(GL_POINTS, 2, 1);
-                e = 2 * dx - dy;
-                inc1 = 2 * (dx - dy);
-                inc2 = 2 * dx;
-                for (i = 0; i < dy; i++)
-                {
-                    if (e >= 0)
-                    {
-                        x += incX;
-                        e += inc1;
-                    }
-                    else
-                    {
-                        e += inc2;
-                    }
-                    y += incY;
-                    ourShader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
-                    glDrawArrays(GL_POINTS, 2, 1);
-                }
-            }
+            currentColor = purple;
+            ourShader.setVec3("ourColor", glm::vec3(currentColor.red, currentColor.green, currentColor.blue));
+            glBindVertexArray(squareVAO);
+            drawLine(ourShader, x1, y1, x2, y2, transform);
         }
         else if (*argv[1] == 'c')
         {
@@ -641,13 +655,6 @@ int main(int argc, char* argv[])
                     d = d + 4 * x + 6;
                 }
                 drawCircle(ourShader, x, y, x1, y1, transform);
-                drawCircle(ourShader, x, y, x1, y1, transform);
-                drawCircle(ourShader, x, y, x1, y1, transform);
-                drawCircle(ourShader, x, y, x1, y1, transform);
-                drawCircle(ourShader, y, x, x1, y1, transform);
-                drawCircle(ourShader, y, x, x1, y1, transform);
-                drawCircle(ourShader, y, x, x1, y1, transform);
-                drawCircle(ourShader, y, x, x1, y1, transform);
             }
         }
         else if (*argv[1] == 'p')
@@ -657,52 +664,28 @@ int main(int argc, char* argv[])
         }
         else if (*argv[1] == 'g')
         {
-            ourShader.setVec3("ourColor", glm::vec3(1.0f, 0.9215, 0.2196));
+            currentColor = yellow;
+            ourShader.setVec3("ourColor", glm::vec3(currentColor.red, currentColor.green, currentColor.blue));
             glBindVertexArray(squareVAO);
-            EdgeTable edgeTable = *originEdgeTable;
-            EdgeTable *activeEdgeTable = new struct EdgeTable(polygonNumberOfVertices);
-            int y = edgeTable.getMinYMin();
-            while (edgeTable.isEmpty() == false || activeEdgeTable->isEmpty() == false)
+            for (int i = 0; i < polygonNumberOfVertices * 2 - 2; i += 2)
             {
-                if (edgeTable.isEmpty() == false)
-                {
-                    while (y == edgeTable.getMinYMin())
-                    {
-                        if (edgeTable.isEmpty())
-                        {
-                            break;
-                        }
-                        activeEdgeTable->add(edgeTable.removeLastEdgeSample());
-                    }
-                }
-                activeEdgeTable->sortByX();
-                for (int i = 0; i < activeEdgeTable->currentNumberOfVertices - 1; i+= 2)
-                {
-                    for (int x = activeEdgeTable->table[i].xOfYMin; x <= activeEdgeTable->table[i + 1].xOfYMin; x++)
-                    {
-                        // std::cout << "draw pixel " << activeEdgeTable->table[i].xOfYMin << " | " << y << std::endl;
-                        std::cout << "draw pixel " << x << " | " << y << std::endl;
-                        drawPixel(ourShader, x, y, transform);
-                    }
-                    // drawPixel(ourShader, activeEdgeTable->table[i].xOfYMin, y, transform);
-                }
-                y++;
-                activeEdgeTable->clearYYMax(y);
-                activeEdgeTable->updateX();
+                drawLine(ourShader, polygonVertices[i], polygonVertices[i + 1], polygonVertices[i + 2], polygonVertices[i + 3], transform);
             }
-            for (int i = 0; i < polygonNumberOfVertices * 2; i += 2)
-            {
-                ourShader.setVec3("ourColor", glm::vec3(0.5529f, 0.1647f, 0.7804f));
-                drawPixel(ourShader, polygonVertices[i], polygonVertices[i + 1], transform);
-            }
+            drawLine(ourShader, polygonVertices[0], polygonVertices[1], polygonVertices[polygonNumberOfVertices * 2 - 2], polygonVertices[polygonNumberOfVertices * 2 - 1], transform);
         }
         else
         {
-            ourShader.setVec3("ourColor", glm::vec3(0.5529f, 0.1647f, 0.7804f));
             ourShader.setMat4("transform", userTransform);
             glDrawArrays(drawType, 0, drawNumberOfVertices);
         }
-
+        if (toFill)
+        {
+            glBindVertexArray(squareVAO);
+            int tempCells[41][41];
+            std::memcpy(tempCells, cells, sizeof(cells));
+            floodFill(ourShader, xStartFill, yStartFill, transform);
+            std::memcpy(cells, tempCells, sizeof(tempCells));
+        }
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -779,6 +762,7 @@ void drawPixel(Shader& shader, int x, int y, glm::mat4& transform)
 {
     shader.setMat4("transform", glm::translate(transform, glm::vec3(x, y, 0.0f)));
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    drawCellPixel(x, y);
 }
 
 void drawCircle(Shader& shader, int x, int y, int x1, int y1, glm::mat4& transform)
@@ -791,4 +775,92 @@ void drawCircle(Shader& shader, int x, int y, int x1, int y1, glm::mat4& transfo
     drawPixel(shader, x1 - y, y1 + x, transform);
     drawPixel(shader, x1 + y, y1 - x, transform);
     drawPixel(shader, x1 - y, y1 - x, transform);
+}
+
+void drawLine(Shader& shader, int x1, int y1, int x2, int y2, glm::mat4& transform)
+{
+    int dx, dy, i, e;
+    int incX, incY, inc1, inc2;
+    int x, y;
+
+    dx = x2 - x1;
+    dy = y2 - y1;
+
+    if (dx < 0)
+    {
+        dx = -dx;
+    }
+    if (dy < 0)
+    {
+        dy = -dy;
+    }
+
+    incX = 1;
+    if (x2 < x1)
+    {
+        incX = -1;
+    }
+
+    incY = 1;
+    if (y2 < y1)
+    {
+        incY = -1;
+    }
+    x = x1; y = y1;
+    if (dx > dy)
+    {
+        drawPixel(shader, x, y, transform);
+        e = 2 * dy - dx;
+        inc1 = 2 * (dy - dx);
+        inc2 = 2 * dy;
+        for (i = 0; i < dx; i++)
+        {
+            if (e >= 0)
+            {
+                y += incY;
+                e += inc1;
+            }
+            else
+            {
+                e += inc2;
+            }
+            x += incX;
+            drawPixel(shader, x, y, transform);
+        }
+
+    }
+    else
+    {
+        drawPixel(shader, x, y, transform);
+        e = 2 * dx - dy;
+        inc1 = 2 * (dx - dy);
+        inc2 = 2 * dx;
+        for (i = 0; i < dy; i++)
+        {
+            if (e >= 0)
+            {
+                x += incX;
+                e += inc1;
+            }
+            else
+            {
+                e += inc2;
+            }
+            y += incY;
+            drawPixel(shader, x, y, transform);
+        }
+    }
+}
+
+void floodFill(Shader& shader, int x, int y, glm::mat4& transform)
+{
+    if (isCellFilled(x, y))
+    {
+        return;
+    }
+    drawPixel(shader, x, y, transform);
+    floodFill(shader, x + 1, y, transform);
+    floodFill(shader, x - 1, y, transform);
+    floodFill(shader, x, y + 1, transform);
+    floodFill(shader, x, y - 1, transform);
 }
